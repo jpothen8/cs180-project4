@@ -40,9 +40,10 @@
 <div class="grid"><figure><a class="image-link" href="images/tissue_box/source.jpg" aria-label="Enlarge: IMG_4378 · tissue box / original view"><img src="images/tissue_box/source.jpg" alt="IMG_4378 · tissue box / original view" width="1200" height="1600"></a><figcaption>IMG_4378 · tissue box / original view</figcaption></figure><figure><a class="image-link" href="images/notebook_sticker/source.jpg" aria-label="Enlarge: IMG_4379 · notebook sticker / original view"><img src="images/notebook_sticker/source.jpg" alt="IMG_4379 · notebook sticker / original view" width="1200" height="1600"></a><figcaption>IMG_4379 · notebook sticker / original view</figcaption></figure></div>
 </section>
 <section id="a2">
+<div class="print-intro">
 <div class="section-heading"><span class="part-number">A.2</span><h2>Recover homographies</h2></div>
 <p class="params">Trees · 10 visually selected point pairs · 20 equations / 8 unknowns · h₃₃ = 1</p>
-<figure class="wide"><a class="image-link" href="images/trees/correspondences.png" aria-label="Enlarge: Trees · matching numbers identify corresponding (x, y) coordinates in the resized images"><img src="images/trees/correspondences.png" alt="Trees · matching numbers identify corresponding (x, y) coordinates in the resized images" width="2385" height="936"></a><figcaption>Trees · matching numbers identify corresponding (x, y) coordinates in the resized images</figcaption></figure>
+<figure class="wide"><a class="image-link" href="images/trees/correspondences.png" aria-label="Enlarge: Trees · matching numbers identify corresponding (x, y) coordinates in the resized images"><img src="images/trees/correspondences.png" alt="Trees · matching numbers identify corresponding (x, y) coordinates in the resized images" width="2385" height="936"></a><figcaption>Trees · matching numbers identify corresponding (x, y) coordinates in the resized images</figcaption></figure></div>
 <div class="formula" aria-label="Homography equations">
 u = (h₁₁x + h₁₂y + h₁₃) / (h₃₁x + h₃₂y + 1)<br>
 v = (h₂₁x + h₂₂y + h₂₃) / (h₃₁x + h₃₂y + 1)
@@ -157,19 +158,19 @@ weight = np.zeros_like(total)
 np.divide(wa,total,out=weight,where=total&gt;0)
 combined = a*weight[:,:,None] + b*(1-weight[:,:,None])</code></pre></details>
 <h3>Other examples</h3>
-<article id="mosaic-kitchen" class="other-example"><h3>Kitchen</h3>
+<article id="mosaic-kitchen" class="other-example"><div class="print-intro"><h3>Kitchen</h3>
 <p class="params">IMG_4373 → IMG_4374 · 9 point pairs · fitted RMSE: 1.84 px · bilinear + feathering · canvas: 2464 × 2661</p>
 <p class="params"><a href="#inputs-kitchen">Source photos in A.1 ↗</a></p>
-<figure class="wide"><a class="image-link" href="images/kitchen/correspondences.png" aria-label="Enlarge: Kitchen · numbered point correspondences"><img src="images/kitchen/correspondences.png" alt="Kitchen · numbered point correspondences" width="1827" height="1033"></a><figcaption>Kitchen · numbered point correspondences</figcaption></figure><details><summary>Geometry · Kitchen homography</summary><div class="formula"><pre>H =
+<figure class="wide"><a class="image-link" href="images/kitchen/correspondences.png" aria-label="Enlarge: Kitchen · numbered point correspondences"><img src="images/kitchen/correspondences.png" alt="Kitchen · numbered point correspondences" width="1827" height="1033"></a><figcaption>Kitchen · numbered point correspondences</figcaption></figure></div><details><summary>Geometry · Kitchen homography</summary><div class="formula"><pre>H =
  0.5698996   0.01171055   649.9569
 -0.2985566   0.9122681   57.95169
 -0.0003824432   5.770777e-06   1</pre><span class="sub">Source → reference at processing resolution, before the common-canvas translation.</span></div></details>
 <div class="grid"><figure class=""><a class="image-link" href="images/kitchen/hard_seam.png" aria-label="Enlarge: Kitchen · reference overwrites source"><img src="images/kitchen/hard_seam.png" alt="Kitchen · reference overwrites source" width="2464" height="2661"></a><figcaption>Kitchen · reference overwrites source</figcaption></figure><figure class=""><a class="image-link" href="images/kitchen/mosaic.png" aria-label="Enlarge: Kitchen · normalized feather blending"><img src="images/kitchen/mosaic.png" alt="Kitchen · normalized feather blending" width="2464" height="2661"></a><figcaption>Kitchen · normalized feather blending</figcaption></figure></div>
 </article>
-<article id="mosaic-living-room" class="other-example"><h3>Living room</h3>
+<article id="mosaic-living-room" class="other-example"><div class="print-intro"><h3>Living room</h3>
 <p class="params">IMG_4376 → IMG_4377 · 13 point pairs · fitted RMSE: 3.55 px · bilinear + feathering · canvas: 4079 × 2633</p>
 <p class="params"><a href="#inputs-living_room">Source photos in A.1 ↗</a></p>
-<figure class="wide"><a class="image-link" href="images/living_room/correspondences.png" aria-label="Enlarge: Living room · numbered point correspondences"><img src="images/living_room/correspondences.png" alt="Living room · numbered point correspondences" width="2385" height="936"></a><figcaption>Living room · numbered point correspondences</figcaption></figure><details><summary>Geometry · Living room homography</summary><div class="formula"><pre>H =
+<figure class="wide"><a class="image-link" href="images/living_room/correspondences.png" aria-label="Enlarge: Living room · numbered point correspondences"><img src="images/living_room/correspondences.png" alt="Living room · numbered point correspondences" width="2385" height="936"></a><figcaption>Living room · numbered point correspondences</figcaption></figure></div><details><summary>Geometry · Living room homography</summary><div class="formula"><pre>H =
  0.3775324  -0.01666502   871.643
 -0.1738931   0.8669713   41.21662
 -0.0003991288   3.689977e-05   1</pre><span class="sub">Source → reference at processing resolution, before the common-canvas translation.</span></div></details>

@@ -101,15 +101,15 @@ dialog p { margin:12px 0 0; font:12px/1.6 var(--mono); }
  main section { padding-top:26px; } .hero img { max-height:360px; }
  .hero.selected { grid-template-columns:repeat(3,minmax(0,1fr)); } .hero.selected img { height:130px; }
  .marked-source img { max-height:280px; }
- h2,h3,.section-heading,.params,summary { break-after:avoid; }
+ h2,h3,h4,.section-heading,.params,summary { break-after:avoid; }
  .section-heading { margin-bottom:16px; } h2 { font-size:25pt; }
  .grid img { height:190px; } .crop img { height:140px; }
  figure,.formula,.metrics,.writing-slot,.pending { break-inside:avoid; }
  .writing-slot { padding:10px 16px; margin:18px 0; }
- details { break-inside:auto; } pre { white-space:pre-wrap; overflow:visible; overflow-wrap:anywhere; font-size:8pt; padding:14px; background:#f4f4f4; color:black; }
+ details { break-inside:avoid; margin-block:14px; } .print-intro { break-inside:avoid; } pre { white-space:pre-wrap; overflow:visible; overflow-wrap:anywhere; font-size:8pt; line-height:1.4; padding:14px; background:#f4f4f4; color:black; }
  details::details-content { content-visibility:visible; }
  .formula pre { font-size:9pt; padding:0; }
  table { font-size:9pt; } tr { break-inside:avoid; }
  a { text-decoration:none; } p { orphans:3; widows:3; }
- footer { margin-top:30px; padding-bottom:0; }
+ footer { margin-top:8px; padding-block:4px 0; font-size:8px; line-height:1.2; break-inside:avoid; }
 }
