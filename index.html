@@ -23,13 +23,21 @@
 <main id="main" class="wrap">
 <section id="a1">
 <div class="section-heading"><span class="part-number">A.1</span><h2>Shoot the pictures</h2></div>
-<h3>Trees</h3>
-<p class="params">Originals: 4032 × 3024 HEIC → JPEG · processing: 1600 × 1200 RGB · first image → second image</p>
-<div class="grid"><figure class=""><a class="image-link" href="images/trees/source_1.jpg" aria-label="Enlarge: IMG_4368 · source image"><img src="images/trees/source_1.jpg" alt="IMG_4368 · source image" width="1600" height="1200"></a><figcaption>IMG_4368 · source image</figcaption></figure><figure class=""><a class="image-link" href="images/trees/source_2.jpg" aria-label="Enlarge: IMG_4369 · reference image"><img src="images/trees/source_2.jpg" alt="IMG_4369 · reference image" width="1600" height="1200"></a><figcaption>IMG_4369 · reference image</figcaption></figure></div>
 <div class="report-text" id="write-a1-capture">
 <p>I took three overlapping photo pairs of different scenery, one of the trees near the Social Sciences building, one of my kitchen, and one of my living room. I resized all of the pictures so that the longest side was 1600 pixels to keep processing manageable while retaining enough detail to choose corresponding points. A homography is exact for points on a common plane, or for a camera rotating around a fixed center of projection. All the scenes include objects at different depths, so it is especially important to keep the camera center fixed. If the camera translates, nearby and distant objects will shift differently so the single homography wouldn&#x27;t align everything. Thus, I tried my best to always rotate around the center of the camera rather than the center of the device I&#x27;m using (my phone).</p>
 </div>
-<p class="params">The <a href="#mosaic-kitchen">Kitchen</a> and <a href="#mosaic-living-room">Living room</a> source sets are shown with their results in A.4.</p>
+<h3 id="inputs-trees">Trees</h3>
+<p class="params">Unwarped source photos · 4032 × 3024 → 1600 × 1200 · HEIC → JPEG · first image → second image</p>
+<div class="grid"><figure><a class="image-link" href="images/trees/source_1.jpg" aria-label="Enlarge: IMG_4368 · source image"><img src="images/trees/source_1.jpg" alt="IMG_4368 · source image" width="1600" height="1200"></a><figcaption>IMG_4368 · source image</figcaption></figure><figure><a class="image-link" href="images/trees/source_2.jpg" aria-label="Enlarge: IMG_4369 · reference image"><img src="images/trees/source_2.jpg" alt="IMG_4369 · reference image" width="1600" height="1200"></a><figcaption>IMG_4369 · reference image</figcaption></figure></div>
+<h3 id="inputs-kitchen">Kitchen</h3>
+<p class="params">Unwarped source photos · 4284 × 5712 → 1200 × 1600 · HEIC → JPEG · first image → second image</p>
+<div class="grid"><figure><a class="image-link" href="images/kitchen/source_1.jpg" aria-label="Enlarge: IMG_4373 · source image"><img src="images/kitchen/source_1.jpg" alt="IMG_4373 · source image" width="1200" height="1600"></a><figcaption>IMG_4373 · source image</figcaption></figure><figure><a class="image-link" href="images/kitchen/source_2.jpg" aria-label="Enlarge: IMG_4374 · reference image"><img src="images/kitchen/source_2.jpg" alt="IMG_4374 · reference image" width="1200" height="1600"></a><figcaption>IMG_4374 · reference image</figcaption></figure></div>
+<h3 id="inputs-living_room">Living room</h3>
+<p class="params">Unwarped source photos · 5712 × 4284 → 1600 × 1200 · HEIC → JPEG · first image → second image</p>
+<div class="grid"><figure><a class="image-link" href="images/living_room/source_1.jpg" aria-label="Enlarge: IMG_4376 · source image"><img src="images/living_room/source_1.jpg" alt="IMG_4376 · source image" width="1600" height="1200"></a><figcaption>IMG_4376 · source image</figcaption></figure><figure><a class="image-link" href="images/living_room/source_2.jpg" aria-label="Enlarge: IMG_4377 · reference image"><img src="images/living_room/source_2.jpg" alt="IMG_4377 · reference image" width="1600" height="1200"></a><figcaption>IMG_4377 · reference image</figcaption></figure></div>
+<h3 id="inputs-rectification">Rectification inputs</h3>
+<p class="params">Unwarped source photos · resized to 1200 × 1600 · both selected faces are square</p>
+<div class="grid"><figure><a class="image-link" href="images/tissue_box/source.jpg" aria-label="Enlarge: IMG_4378 · tissue box / original view"><img src="images/tissue_box/source.jpg" alt="IMG_4378 · tissue box / original view" width="1200" height="1600"></a><figcaption>IMG_4378 · tissue box / original view</figcaption></figure><figure><a class="image-link" href="images/notebook_sticker/source.jpg" aria-label="Enlarge: IMG_4379 · notebook sticker / original view"><img src="images/notebook_sticker/source.jpg" alt="IMG_4379 · notebook sticker / original view" width="1200" height="1600"></a><figcaption>IMG_4379 · notebook sticker / original view</figcaption></figure></div>
 </section>
 <section id="a2">
 <div class="section-heading"><span class="part-number">A.2</span><h2>Recover homographies</h2></div>
@@ -151,7 +159,7 @@ combined = a*weight[:,:,None] + b*(1-weight[:,:,None])</code></pre></details>
 <h3>Other examples</h3>
 <article id="mosaic-kitchen" class="other-example"><h3>Kitchen</h3>
 <p class="params">IMG_4373 → IMG_4374 · 9 point pairs · fitted RMSE: 1.84 px · bilinear + feathering · canvas: 2464 × 2661</p>
-<div class="grid"><figure class=""><a class="image-link" href="images/kitchen/source_1.jpg" aria-label="Enlarge: IMG_4373 · source image"><img src="images/kitchen/source_1.jpg" alt="IMG_4373 · source image" width="1200" height="1600"></a><figcaption>IMG_4373 · source image</figcaption></figure><figure class=""><a class="image-link" href="images/kitchen/source_2.jpg" aria-label="Enlarge: IMG_4374 · reference image"><img src="images/kitchen/source_2.jpg" alt="IMG_4374 · reference image" width="1200" height="1600"></a><figcaption>IMG_4374 · reference image</figcaption></figure></div>
+<p class="params"><a href="#inputs-kitchen">Source photos in A.1 ↗</a></p>
 <figure class="wide"><a class="image-link" href="images/kitchen/correspondences.png" aria-label="Enlarge: Kitchen · numbered point correspondences"><img src="images/kitchen/correspondences.png" alt="Kitchen · numbered point correspondences" width="1827" height="1033"></a><figcaption>Kitchen · numbered point correspondences</figcaption></figure><details><summary>Geometry · Kitchen homography</summary><div class="formula"><pre>H =
  0.5698996   0.01171055   649.9569
 -0.2985566   0.9122681   57.95169
@@ -160,7 +168,7 @@ combined = a*weight[:,:,None] + b*(1-weight[:,:,None])</code></pre></details>
 </article>
 <article id="mosaic-living-room" class="other-example"><h3>Living room</h3>
 <p class="params">IMG_4376 → IMG_4377 · 13 point pairs · fitted RMSE: 3.55 px · bilinear + feathering · canvas: 4079 × 2633</p>
-<div class="grid"><figure class=""><a class="image-link" href="images/living_room/source_1.jpg" aria-label="Enlarge: IMG_4376 · source image"><img src="images/living_room/source_1.jpg" alt="IMG_4376 · source image" width="1600" height="1200"></a><figcaption>IMG_4376 · source image</figcaption></figure><figure class=""><a class="image-link" href="images/living_room/source_2.jpg" aria-label="Enlarge: IMG_4377 · reference image"><img src="images/living_room/source_2.jpg" alt="IMG_4377 · reference image" width="1600" height="1200"></a><figcaption>IMG_4377 · reference image</figcaption></figure></div>
+<p class="params"><a href="#inputs-living_room">Source photos in A.1 ↗</a></p>
 <figure class="wide"><a class="image-link" href="images/living_room/correspondences.png" aria-label="Enlarge: Living room · numbered point correspondences"><img src="images/living_room/correspondences.png" alt="Living room · numbered point correspondences" width="2385" height="936"></a><figcaption>Living room · numbered point correspondences</figcaption></figure><details><summary>Geometry · Living room homography</summary><div class="formula"><pre>H =
  0.3775324  -0.01666502   871.643
 -0.1738931   0.8669713   41.21662
