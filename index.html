@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project 4A · Image Warping and Mosaicing · John Joseph</title>
+<meta name="description" content="Berkeley CS180 Project 4A: homographies, inverse warping, image rectification, and photo mosaics.">
+<link rel="stylesheet" href="style.css"><script src="script.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to report</a>
+<header class="masthead wrap">
+<div class="eyebrow"><span>Berkeley · CS180 · Fall 2026</span><span class="draft">Part A</span></div>
+<h1>Image Warping<br>and Mosaicing</h1>
+<div class="site-url" id="website-url"><a href="https://jpothen8.github.io/cs180-project4/">https://jpothen8.github.io/cs180-project4/</a></div>
+<p class="byline">John Joseph · Project 4A</p>
+<p class="print-note">The PDF is static. Print view expands code snippets and includes both interpolation and blending comparisons. Image enlargement and sticky navigation are available only on the website.</p>
+<div class="hero selected"><figure class=""><a class="image-link" href="images/trees/mosaic.png" aria-label="Enlarge: Trees · feathered mosaic"><img src="images/trees/mosaic.png" alt="Trees · feathered mosaic" width="2279" height="1569"></a><figcaption>Trees · feathered mosaic</figcaption></figure><figure class=""><a class="image-link" href="images/kitchen/mosaic.png" aria-label="Enlarge: Kitchen · feathered mosaic"><img src="images/kitchen/mosaic.png" alt="Kitchen · feathered mosaic" width="2464" height="2661"></a><figcaption>Kitchen · feathered mosaic</figcaption></figure><figure class=""><a class="image-link" href="images/living_room/mosaic.png" aria-label="Enlarge: Living room · feathered mosaic"><img src="images/living_room/mosaic.png" alt="Living room · feathered mosaic" width="4079" height="2633"></a><figcaption>Living room · feathered mosaic</figcaption></figure></div>
+</header>
+<nav aria-label="Report sections"><div class="wrap nav-inner">
+<a href="#a1">A.1 / Pictures</a><a href="#a2">A.2 / Homographies</a><a href="#a3">A.3 / Warping</a><a href="#a4">A.4 / Mosaics</a>
+<button class="print-button" type="button">Print report ↗</button>
+</div></nav>
+<main id="main" class="wrap">
+<section id="a1">
+<div class="section-heading"><span class="part-number">A.1</span><h2>Shoot the pictures</h2></div>
+<h3>Trees</h3>
+<p class="params">Originals: 4032 × 3024 HEIC → JPEG · processing: 1600 × 1200 RGB · first image → second image</p>
+<div class="grid"><figure class=""><a class="image-link" href="images/trees/source_1.jpg" aria-label="Enlarge: IMG_4368 · source image"><img src="images/trees/source_1.jpg" alt="IMG_4368 · source image" width="1600" height="1200"></a><figcaption>IMG_4368 · source image</figcaption></figure><figure class=""><a class="image-link" href="images/trees/source_2.jpg" aria-label="Enlarge: IMG_4369 · reference image"><img src="images/trees/source_2.jpg" alt="IMG_4369 · reference image" width="1600" height="1200"></a><figcaption>IMG_4369 · reference image</figcaption></figure></div>
+<div class="report-text" id="write-a1-capture">
+<p>I took three overlapping photo pairs of different scenery, one of the trees near the Social Sciences building, one of my kitchen, and one of my living room. I resized all of the pictures so that the longest side was 1600 pixels to keep processing manageable while retaining enough detail to choose corresponding points. A homography is exact for points on a common plane, or for a camera rotating around a fixed center of projection. All the scenes include objects at different depths, so it is especially important to keep the camera center fixed. If the camera translates, nearby and distant objects will shift differently so the single homography wouldn&#x27;t align everything. Thus, I tried my best to always rotate around the center of the camera rather than the center of the device I&#x27;m using (my phone).</p>
+</div>
+<p class="params">The <a href="#mosaic-kitchen">Kitchen</a> and <a href="#mosaic-living-room">Living room</a> source sets are shown with their results in A.4.</p>
+</section>
+<section id="a2">
+<div class="section-heading"><span class="part-number">A.2</span><h2>Recover homographies</h2></div>
+<p class="params">Trees · 10 visually selected point pairs · 20 equations / 8 unknowns · h₃₃ = 1</p>
+<figure class="wide"><a class="image-link" href="images/trees/correspondences.png" aria-label="Enlarge: Trees · matching numbers identify corresponding (x, y) coordinates in the resized images"><img src="images/trees/correspondences.png" alt="Trees · matching numbers identify corresponding (x, y) coordinates in the resized images" width="2385" height="936"></a><figcaption>Trees · matching numbers identify corresponding (x, y) coordinates in the resized images</figcaption></figure>
+<div class="formula" aria-label="Homography equations">
+u = (h₁₁x + h₁₂y + h₁₃) / (h₃₁x + h₃₂y + 1)<br>
+v = (h₂₁x + h₂₂y + h₂₃) / (h₃₁x + h₃₂y + 1)
+<span class="sub">Each correspondence contributes these two rows to Ah = b:</span>
+<pre>[ x  y  1  0  0  0  −ux  −uy ] h = u
+[ 0  0  0  x  y  1  −vx  −vy ] h = v
+h = [h₁₁ h₁₂ h₁₃ h₂₁ h₂₂ h₂₃ h₃₁ h₃₂]ᵀ</pre>
+</div>
+<h3>Recovered matrix</h3>
+<div class="formula"><pre>H =
+ 0.6897159   0.08605795   371.2691
+-0.1749927   0.8989027   96.33831
+-0.000208483   2.166527e-05   1</pre><span class="sub">Source coordinates in IMG_4368 → reference coordinates in IMG_4369, before the canvas offset.</span></div>
+<div class="metrics"><div><b>10</b><span>point pairs</span></div><div><b>20 × 8</b><span>linear system A</span></div><div><b>2.69 px</b><span>fitted reprojection RMSE</span></div></div>
+<div class="report-text" id="write-a2-homography">
+<p>A homography is a 3x3 matrix that maps a source point to a reference point in homogeneous coordinates. In order to obtain the reference image coordinates after multiplying H by [x,y,1], the first two coordinates are divided by the third to get a [x*,y*] 2D coordinate. Multiplying every entry of H by the same nonzero value leaves the mapping unchanged, so my implementation fixes the bottom-right entry to 1 and solves for the other 8 entries.</p>
+<p>In the image, I pick reference points visible in both images, and each matching point pair gives two equations. Rearranging the equations for u and v gives the two rows of Ah=b shown above. Four pairs can determine the eight unknowns, but extra pairs provide more constraints and thus reduce sensitivity to an individual inaccurate matching point, and I use numpy&#x27;s least squares solver to solve the overdetermined linear system. This minimizes the sum of squared residuals of Ah=b, but that does not necessarily mean it&#x27;s minimizing the geometric reprojection error.</p>
+<p>I had 10, 9, and 13 pairs for the trees, kitchen, and living room pairs, respectively, which created 20x8, 18x8, and 26x8 systems to solve. The fitted reprojection RMSEs are 2.69, 1.84, and 3.55 pixels, which measure the disagreement with the same points used to estimate H. These errors could be caused by inaccuracies in placing the paired points or correspondences that can&#x27;t be explained by a single homography (e.g. parallax from camera translation, or lens distortion).</p>
+</div>
+<details><summary>Code · linear system and least-squares fit</summary><pre><code>def homography_system(im1_pts, im2_pts):
+    p = np.asarray(im1_pts, dtype=float)
+    q = np.asarray(im2_pts, dtype=float)
+    if p.shape != q.shape or p.ndim != 2 or p.shape[1] != 2 or len(p) &lt; 4:
+        raise ValueError(&quot;Need at least four matching (x,y) points in each image&quot;)
+    A = []
+    b = []
+    for (x,y), (u,v) in zip(p, q):
+        A.append([x, y, 1, 0, 0, 0, -u*x, -u*y])
+        A.append([0, 0, 0, x, y, 1, -v*x, -v*y])
+        b.extend([u, v])
+    return np.array(A), np.array(b)
+
+
+def computeH(im1_pts, im2_pts):
+    A,b = homography_system(im1_pts, im2_pts)
+    h, residuals, rank, singular = np.linalg.lstsq(A, b, rcond=None)
+    if rank &lt; 8:
+        raise ValueError(&quot;These points do not determine a homography&quot;)
+    return np.append(h, 1).reshape(3,3)</code></pre></details>
+</section>
+<section id="a3">
+<div class="section-heading"><span class="part-number">A.3</span><h2>Warp the images</h2></div>
+<p class="params">Inverse mapping · source pixel centers at integer coordinates · explicit validity mask</p>
+<div class="formula">destination (x, y, 1)ᵀ → H⁻¹ → divide by homogeneous coordinate → sample source<br><span class="sub">Output array (column, row) = reference coordinate − (xₘᵢₙ, yₘᵢₙ). Source warp bounds: (371, −276) to (2278, 1292), inclusive.</span></div>
+<div class="report-text" id="write-a3-warp">
+<p>In order to warp the images, I use the inverse mapping. First, the four pixel center corners of the source image are transformed by H to determine the output bounds, and the minimum coordinates are rounded down and the maximum coordinates are rounded up so the canvas has enough space to contain the entire transformed image. I allow negative coordinates because the warped photo can extend above or to the left of the reference image. For each output pixel, the canvas origin is added to its array coordinates to recover its position in the reference coordinate system. Multiplying that point by H inverse and dividing the first two coordinates by the third, as I explained above, gives the location to sample in the source image. In this way, I avoid the gaps that can happen when the source pixels are mapped forward to scattered destination locations. A separate validity mask records whether the mapped source location actually lies in the source image, and locations outside the source stay empty while genuine black pixels inside the source remain valid.</p>
+</div>
+<h3>Nearest neighbor and bilinear</h3>
+<div class="grid"><figure class=""><a class="image-link" href="images/trees/warp_nearest.png" aria-label="Enlarge: Trees · inverse warp / nearest neighbor"><img src="images/trees/warp_nearest.png" alt="Trees · inverse warp / nearest neighbor" width="1908" height="1569"></a><figcaption>Trees · inverse warp / nearest neighbor</figcaption></figure><figure class=""><a class="image-link" href="images/trees/warp_bilinear.png" aria-label="Enlarge: Trees · inverse warp / bilinear"><img src="images/trees/warp_bilinear.png" alt="Trees · inverse warp / bilinear" width="1908" height="1569"></a><figcaption>Trees · inverse warp / bilinear</figcaption></figure></div>
+<div class="grid crop"><figure class=""><a class="image-link" href="images/trees/warp_nearest_crop.png" aria-label="Enlarge: Nearest neighbor · 120 × 120 pixel crop"><img src="images/trees/warp_nearest_crop.png" alt="Nearest neighbor · 120 × 120 pixel crop" width="120" height="120"></a><figcaption>Nearest neighbor · 120 × 120 pixel crop</figcaption></figure><figure class=""><a class="image-link" href="images/trees/warp_bilinear_crop.png" aria-label="Enlarge: Bilinear · identical crop coordinates"><img src="images/trees/warp_bilinear_crop.png" alt="Bilinear · identical crop coordinates" width="120" height="120"></a><figcaption>Bilinear · identical crop coordinates</figcaption></figure></div>
+<div class="table-wrap"><table><caption>Warping IMG_4368 · identical 1908 × 1569 output canvas · median of three runs</caption><thead><tr><th>Interpolation</th><th>Time</th><th>Source samples per valid pixel</th></tr></thead><tbody>
+<tr><td>Nearest neighbor</td><td>0.1000 s</td><td>1</td></tr><tr><td>Bilinear</td><td>0.2068 s</td><td>4 neighboring values</td></tr></tbody></table></div>
+<div class="report-text" id="write-a3-interpolation">
+<p>Now, we have to actually figure out the color values when the inverse homography outputs source coordinates that are not clean whole numbers. The first method I implemented was nearest-neighbor interpolation, which rounds the mapped source coordinates to the closest integer pixel. It just uses this one source value and is fast, but small changes in the mapped position can abruptly switch which pixel is selected. This can make diagonal edges or enlarged details look somewhat blocky.</p>
+<p>The second method is bilinear interpolation, which uses the four neighboring source pixels, thought of as single point values instead of as squares. If dx and dy are the fractional parts of the source coordinates, their weights are (1−dx)(1−dy), dx(1−dy), (1−dx)dy, and dxdy. This way, the weighted average changes smoothly with the source position, which reduces the abrupt steps of nearest neighbor sampling. It can also soften fine details, and it can&#x27;t restore detail that was already blurred in the original photo.</p>
+<p>On the trees output canvas, the median of three warp calls was 0.1 seconds for nearest neighbor and 0.2068 seconds for bilinear, so bilinear took about twice as long to run.</p>
+</div>
+<details><summary>Code · bilinear sampling / excerpt</summary><pre><code>x0 = np.floor(x).astype(int)
+y0 = np.floor(y).astype(int)
+x1 = np.minimum(x0+1,iw-1)
+y1 = np.minimum(y0+1,ih-1)
+dx = (x-x0)[:,None]
+dy = (y-y0)[:,None]
+values = ((1-dx)*(1-dy)*source[y0,x0] + dx*(1-dy)*source[y0,x1]
+          + (1-dx)*dy*source[y1,x0] + dx*dy*source[y1,x1])</code></pre></details>
+<h3>Rectification</h3>
+<p class="params">Both planar faces are square, confirmed by the photographer · target: 700 × 700 · corners: TL → TR → BR → BL</p>
+<h3>Tissue box</h3>
+<figure class="marked-source"><a class="image-link" href="images/tissue_box/corners.png" aria-label="Enlarge: Tissue box · IMG_4378 · selected face and corner order"><img src="images/tissue_box/corners.png" alt="Tissue box · IMG_4378 · selected face and corner order" width="549" height="723"></a><figcaption>Tissue box · IMG_4378 · selected face and corner order</figcaption></figure><p class="params">Whole image warped · sampling canvas: 2306 × 1840 · uniform scale: 1.0000 relative to the 700 px face target · four transformed corners marked</p>
+<div class="grid full-rectification"><figure><a class="image-link" href="images/tissue_box/full_nearest_marked.png" aria-label="Enlarge: Tissue box · whole-frame rectification / nearest neighbor"><img src="images/tissue_box/full_nearest_marked.png" alt="Tissue box · whole-frame rectification / nearest neighbor" width="1022" height="817"></a><figcaption>Tissue box · whole-frame rectification / nearest neighbor</figcaption></figure><figure><a class="image-link" href="images/tissue_box/full_bilinear_marked.png" aria-label="Enlarge: Tissue box · whole-frame rectification / bilinear"><img src="images/tissue_box/full_bilinear_marked.png" alt="Tissue box · whole-frame rectification / bilinear" width="1022" height="817"></a><figcaption>Tissue box · whole-frame rectification / bilinear</figcaption></figure></div>
+<p class="params">Whole-frame warp time · nearest: 0.1051 s · bilinear: 0.2202 s · medians of three calls</p>
+<h4>Enlarged face detail</h4>
+<div class="grid"><figure class=""><a class="image-link" href="images/tissue_box/nearest.png" aria-label="Enlarge: Tissue box · nearest neighbor · 700 × 700"><img src="images/tissue_box/nearest.png" alt="Tissue box · nearest neighbor · 700 × 700" width="700" height="700"></a><figcaption>Tissue box · nearest neighbor · 700 × 700</figcaption></figure><figure class=""><a class="image-link" href="images/tissue_box/bilinear.png" aria-label="Enlarge: Tissue box · bilinear · 700 × 700"><img src="images/tissue_box/bilinear.png" alt="Tissue box · bilinear · 700 × 700" width="700" height="700"></a><figcaption>Tissue box · bilinear · 700 × 700</figcaption></figure></div>
+<p class="params">700 × 700 detail warp time · nearest: 0.0181 s · bilinear: 0.0417 s · medians of three calls</p>
+<details><summary>Geometry · Tissue box rectification</summary><div class="formula"><pre>H =
+ 0.9589203  -0.1864887   1.473491
+ 0.01176699   1.121787  -431.6267
+-0.0003842106   0.0004716805   1</pre><span class="sub">Corners map to (0, 0), (699, 0), (699, 699), (0, 699). This H maps the face to the 700 × 700 detail. The whole-frame output uses the same geometry with a uniform scale and a larger canvas.</span></div></details>
+<div class="report-text" id="write-a3-rectify-1">
+<p>Here, I use image rectification to turn a known square in the real world back into a square after taking a picture at an angle which warps its view due to perspective effects. I selected each visible corner in top-left, top-right, bottom-right, and bottom-left order, and then took the source pixel positions of each corner and remapped them to (0,0), (699,0), (699,699), and (0,699) by fitting a homography between them.</p>
+<p>Both interpolation methods are shown for the entire warped photograph, with an outline and the four corner markers emphasizing that it is now a square. A 700x700 detail of the face itself is also shown. We can see that with nearest neighbor interpolation, the edges of the purple box around the Kleenex logo are somewhat jagged as the nearest neighbor is sometimes the purple interior and sometimes the differently colored exterior, which creates this artifact. However, the bilinear interpolation reduces this effect, but the edges of the Kleenex text seem less sharp.</p>
+<p>Overall, the bilinear interpolation does create a higher quality image by the eye test as there aren&#x27;t as many visible jagged edges, but the median runtime for the 700x700 detail was 0.0181s for nearest neighbor and 0.0417s for bilinear. For the whole frame result, the median runtime was 0.1051s for nearest neighbor and 0.2202 seconds for bilinear. This means that for the tradeoff of getting fewer jagged edges, we have to run an algorithm that takes more than 2x the amount of runtime.</p>
+</div>
+<h3>Notebook sticker</h3>
+<figure class="marked-source"><a class="image-link" href="images/notebook_sticker/corners.png" aria-label="Enlarge: Notebook sticker · IMG_4379 · selected face and corner order"><img src="images/notebook_sticker/corners.png" alt="Notebook sticker · IMG_4379 · selected face and corner order" width="549" height="723"></a><figcaption>Notebook sticker · IMG_4379 · selected face and corner order</figcaption></figure><p class="params">Whole image warped · sampling canvas: 2402 × 2340 · uniform scale: 0.1938 relative to the 700 px face target · four transformed corners marked</p>
+<div class="grid full-rectification"><figure><a class="image-link" href="images/notebook_sticker/full_nearest_marked.png" aria-label="Enlarge: Notebook sticker · whole-frame rectification / nearest neighbor"><img src="images/notebook_sticker/full_nearest_marked.png" alt="Notebook sticker · whole-frame rectification / nearest neighbor" width="838" height="817"></a><figcaption>Notebook sticker · whole-frame rectification / nearest neighbor</figcaption></figure><figure><a class="image-link" href="images/notebook_sticker/full_bilinear_marked.png" aria-label="Enlarge: Notebook sticker · whole-frame rectification / bilinear"><img src="images/notebook_sticker/full_bilinear_marked.png" alt="Notebook sticker · whole-frame rectification / bilinear" width="838" height="817"></a><figcaption>Notebook sticker · whole-frame rectification / bilinear</figcaption></figure></div>
+<p class="params">Whole-frame warp time · nearest: 0.1104 s · bilinear: 0.1943 s · medians of three calls</p>
+<h4>Enlarged face detail</h4>
+<div class="grid"><figure class=""><a class="image-link" href="images/notebook_sticker/nearest.png" aria-label="Enlarge: Notebook sticker · nearest neighbor · 700 × 700"><img src="images/notebook_sticker/nearest.png" alt="Notebook sticker · nearest neighbor · 700 × 700" width="700" height="700"></a><figcaption>Notebook sticker · nearest neighbor · 700 × 700</figcaption></figure><figure class=""><a class="image-link" href="images/notebook_sticker/bilinear.png" aria-label="Enlarge: Notebook sticker · bilinear · 700 × 700"><img src="images/notebook_sticker/bilinear.png" alt="Notebook sticker · bilinear · 700 × 700" width="700" height="700"></a><figcaption>Notebook sticker · bilinear · 700 × 700</figcaption></figure></div>
+<p class="params">700 × 700 detail warp time · nearest: 0.0181 s · bilinear: 0.0420 s · medians of three calls</p>
+<details><summary>Geometry · Notebook sticker rectification</summary><div class="formula"><pre>H =
+ 11.66943   8.349675  -11135.51
+-1.456606   17.69507  -10430.6
+ 0.001726662   0.006212825   1</pre><span class="sub">Corners map to (0, 0), (699, 0), (699, 699), (0, 699). This H maps the face to the 700 × 700 detail. The whole-frame output uses the same geometry with a uniform scale and a larger canvas.</span></div></details>
+<div class="report-text" id="write-a3-rectify-2">
+<p>Using the same method as above, I apply the same to a square sticker patch on a notebook. The photo was again taken at an angle so the outline appears as a quadrilateral in the photo. Here, the photo quality is not that great as there are fewer pixels to sample from for the sticker compared to before, so the overall face detail shows less detail and is blurrier. However, the bilinear approach looks much blurrier than the nearest neighbor approach and the nearest neighbor approach doesn&#x27;t have any noticeable jagged lines compared to the tissue box. Again, for the 700x700 detail, I see that the bilinear approach takes slightly more than double the runtime of the nearest-neighbor approach.</p>
+</div>
+</section>
+<section id="a4">
+<div class="section-heading"><span class="part-number">A.4</span><h2>Blend into a mosaic</h2></div>
+<div class="report-text" id="write-a4-mosaics">
+<p>For all three mosaics, the first source photo is warped into the second reference photo&#x27;s projection using the recovered homography and bilinear interpolation. The common canvas covers both image footprints, and a separate validity mask identifies which pixels each image contributes. Simply letting the reference overwrite the warped source image creates an abrupt change at the image boundary if there are any differences in lighting or slight distortion of relationships that can&#x27;t be captured by a single homography in the warped source image. Thus, I use feather blending, which means each original image receives weights based on distance from its edges, with larger weights towards the interior; these weights are warped with the corresponding image, multiplied by the validity mask, and then normalized by the sum of both images&#x27; weights. The final pixel color is thus their weighted average, and where only one image is valid, its color is completely preserved, and areas outside both images remain transparent. This makes the transition between the photos much more gradual as we can see with the visualization under the trees mosaic as to how the reference and the source blend together in terms of color contribution. Although this makes the transition between the photos more gradual, it is important to note that it does not fix geometric disagreement in any way. For example, the overwritten trees mosaic actually looks better than the feather blended version because the leaves between the images disagree, creating a blurred leaves artifact possibly due to the wind changing the position of the leaves between the photos or other residual misalignment. However, in the other two examples in the kitchen and living room, the feather blended version looks much better as there are slightly different brightness levels in each photo, which could reflect lighting or exposure differences. Feather blending can smooth these color differences, so the kitchen and living room images look a lot cleaner to me than the overwritten images, although geometric disagreement can still remain. Since the trees image has misaligned branches but not much color disagreement between photos, the overwritten mosaic looks better.</p>
+</div>
+<h3>Trees</h3>
+<p class="params">Reference: IMG_4369 · bilinear sampling · canvas: 2279 × 1569 · normalized feather weights</p>
+<div class="grid"><figure class=""><a class="image-link" href="images/trees/hard_seam.png" aria-label="Enlarge: Trees · reference image overwrites the warped source"><img src="images/trees/hard_seam.png" alt="Trees · reference image overwrites the warped source" width="2279" height="1569"></a><figcaption>Trees · reference image overwrites the warped source</figcaption></figure><figure class=""><a class="image-link" href="images/trees/mosaic.png" aria-label="Enlarge: Trees · normalized feather blending"><img src="images/trees/mosaic.png" alt="Trees · normalized feather blending" width="2279" height="1569"></a><figcaption>Trees · normalized feather blending</figcaption></figure></div>
+<div class="grid"><figure class=""><a class="image-link" href="images/trees/source_weight.png" aria-label="Enlarge: Source contribution α · 0 = reference / 1 = source · outside support is 0"><img src="images/trees/source_weight.png" alt="Source contribution α · 0 = reference / 1 = source · outside support is 0" width="2279" height="1569"></a><figcaption>Source contribution α · 0 = reference / 1 = source · outside support is 0</figcaption></figure><div class="formula">Fᵢ(x, y) = min(x + 1, W − x, y + 1, H − y)<br>wᵢ = warp(Fᵢ / max(Fᵢ)) · maskᵢ<br>α = w₁ / (w₁ + w₂)<br>mosaic = α I₁ + (1 − α) I₂<span class="sub">The reference uses the identity transform. α is defined only where the total weight is positive; pixels outside both images remain transparent.</span></div></div>
+<details><summary>Code · normalized feather blending / excerpt</summary><pre><code>wa = warpImageBilinear(feather(im1),H,bounds) * mask_a
+wb = warpImageBilinear(feather(im2),np.eye(3),bounds) * mask_b
+total = wa + wb
+weight = np.zeros_like(total)
+np.divide(wa,total,out=weight,where=total&gt;0)
+combined = a*weight[:,:,None] + b*(1-weight[:,:,None])</code></pre></details>
+<h3>Other examples</h3>
+<article id="mosaic-kitchen" class="other-example"><h3>Kitchen</h3>
+<p class="params">IMG_4373 → IMG_4374 · 9 point pairs · fitted RMSE: 1.84 px · bilinear + feathering · canvas: 2464 × 2661</p>
+<div class="grid"><figure class=""><a class="image-link" href="images/kitchen/source_1.jpg" aria-label="Enlarge: IMG_4373 · source image"><img src="images/kitchen/source_1.jpg" alt="IMG_4373 · source image" width="1200" height="1600"></a><figcaption>IMG_4373 · source image</figcaption></figure><figure class=""><a class="image-link" href="images/kitchen/source_2.jpg" aria-label="Enlarge: IMG_4374 · reference image"><img src="images/kitchen/source_2.jpg" alt="IMG_4374 · reference image" width="1200" height="1600"></a><figcaption>IMG_4374 · reference image</figcaption></figure></div>
+<figure class="wide"><a class="image-link" href="images/kitchen/correspondences.png" aria-label="Enlarge: Kitchen · numbered point correspondences"><img src="images/kitchen/correspondences.png" alt="Kitchen · numbered point correspondences" width="1827" height="1033"></a><figcaption>Kitchen · numbered point correspondences</figcaption></figure><details><summary>Geometry · Kitchen homography</summary><div class="formula"><pre>H =
+ 0.5698996   0.01171055   649.9569
+-0.2985566   0.9122681   57.95169
+-0.0003824432   5.770777e-06   1</pre><span class="sub">Source → reference at processing resolution, before the common-canvas translation.</span></div></details>
+<div class="grid"><figure class=""><a class="image-link" href="images/kitchen/hard_seam.png" aria-label="Enlarge: Kitchen · reference overwrites source"><img src="images/kitchen/hard_seam.png" alt="Kitchen · reference overwrites source" width="2464" height="2661"></a><figcaption>Kitchen · reference overwrites source</figcaption></figure><figure class=""><a class="image-link" href="images/kitchen/mosaic.png" aria-label="Enlarge: Kitchen · normalized feather blending"><img src="images/kitchen/mosaic.png" alt="Kitchen · normalized feather blending" width="2464" height="2661"></a><figcaption>Kitchen · normalized feather blending</figcaption></figure></div>
+</article>
+<article id="mosaic-living-room" class="other-example"><h3>Living room</h3>
+<p class="params">IMG_4376 → IMG_4377 · 13 point pairs · fitted RMSE: 3.55 px · bilinear + feathering · canvas: 4079 × 2633</p>
+<div class="grid"><figure class=""><a class="image-link" href="images/living_room/source_1.jpg" aria-label="Enlarge: IMG_4376 · source image"><img src="images/living_room/source_1.jpg" alt="IMG_4376 · source image" width="1600" height="1200"></a><figcaption>IMG_4376 · source image</figcaption></figure><figure class=""><a class="image-link" href="images/living_room/source_2.jpg" aria-label="Enlarge: IMG_4377 · reference image"><img src="images/living_room/source_2.jpg" alt="IMG_4377 · reference image" width="1600" height="1200"></a><figcaption>IMG_4377 · reference image</figcaption></figure></div>
+<figure class="wide"><a class="image-link" href="images/living_room/correspondences.png" aria-label="Enlarge: Living room · numbered point correspondences"><img src="images/living_room/correspondences.png" alt="Living room · numbered point correspondences" width="2385" height="936"></a><figcaption>Living room · numbered point correspondences</figcaption></figure><details><summary>Geometry · Living room homography</summary><div class="formula"><pre>H =
+ 0.3775324  -0.01666502   871.643
+-0.1738931   0.8669713   41.21662
+-0.0003991288   3.689977e-05   1</pre><span class="sub">Source → reference at processing resolution, before the common-canvas translation.</span></div></details>
+<div class="grid"><figure class=""><a class="image-link" href="images/living_room/hard_seam.png" aria-label="Enlarge: Living room · reference overwrites source"><img src="images/living_room/hard_seam.png" alt="Living room · reference overwrites source" width="4079" height="2633"></a><figcaption>Living room · reference overwrites source</figcaption></figure><figure class=""><a class="image-link" href="images/living_room/mosaic.png" aria-label="Enlarge: Living room · normalized feather blending"><img src="images/living_room/mosaic.png" alt="Living room · normalized feather blending" width="4079" height="2633"></a><figcaption>Living room · normalized feather blending</figcaption></figure></div>
+</article>
+</section>
+</main>
+<footer class="wrap"><span>John Joseph · CS180 · Project 4A</span><a href="https://cal-cs180.github.io/fa26/hw/proj3/partA.html">Assignment ↗</a></footer>
+<dialog aria-label="Enlarged figure"><button type="button">Close / Esc</button><img alt=""><p></p></dialog>
+</body></html>
