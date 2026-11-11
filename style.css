@@ -110,6 +110,7 @@ dialog p { margin:12px 0 0; font:12px/1.6 var(--mono); }
  details::details-content { content-visibility:visible; }
  .formula pre { font-size:9pt; padding:0; }
  table { font-size:9pt; } tr { break-inside:avoid; }
+ #b4 table,#b4 .other-example { break-inside:avoid; }
  a { text-decoration:none; } p { orphans:3; widows:3; }
  footer { margin-top:8px; padding-block:4px 0; font-size:8px; line-height:1.2; break-inside:avoid; }
 }
