@@ -2,22 +2,23 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Project 4A · Image Warping and Mosaicing · John Joseph</title>
-<meta name="description" content="Berkeley CS180 Project 4A: homographies, inverse warping, image rectification, and photo mosaics.">
+<title>Project 4 · Image Warping and Mosaicing · John Joseph</title>
+<meta name="description" content="Berkeley CS180 Project 4: homographies, image rectification, feature matching, RANSAC, and automatic mosaics.">
 <link rel="stylesheet" href="style.css"><script src="script.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to report</a>
 <header class="masthead wrap">
-<div class="eyebrow"><span>Berkeley · CS180 · Fall 2026</span><span class="draft">Part A</span></div>
+<div class="eyebrow"><span>Berkeley · CS180 · Fall 2026</span><span class="draft">Parts A + B</span></div>
 <h1>Image Warping<br>and Mosaicing</h1>
 <div class="site-url" id="website-url"><a href="https://jpothen8.github.io/cs180-project4/">https://jpothen8.github.io/cs180-project4/</a></div>
-<p class="byline">John Joseph · Project 4A</p>
+<p class="byline">John Joseph · Project 4</p>
 <p class="print-note">The PDF is static. Print view expands code snippets and includes both interpolation and blending comparisons. Image enlargement and sticky navigation are available only on the website.</p>
 <div class="hero selected"><figure class=""><a class="image-link" href="images/trees/mosaic.png" aria-label="Enlarge: Trees · feathered mosaic"><img src="images/trees/mosaic.png" alt="Trees · feathered mosaic" width="2279" height="1569"></a><figcaption>Trees · feathered mosaic</figcaption></figure><figure class=""><a class="image-link" href="images/kitchen/mosaic.png" aria-label="Enlarge: Kitchen · feathered mosaic"><img src="images/kitchen/mosaic.png" alt="Kitchen · feathered mosaic" width="2464" height="2661"></a><figcaption>Kitchen · feathered mosaic</figcaption></figure><figure class=""><a class="image-link" href="images/living_room/mosaic.png" aria-label="Enlarge: Living room · feathered mosaic"><img src="images/living_room/mosaic.png" alt="Living room · feathered mosaic" width="4079" height="2633"></a><figcaption>Living room · feathered mosaic</figcaption></figure></div>
 </header>
 <nav aria-label="Report sections"><div class="wrap nav-inner">
 <a href="#a1">A.1 / Pictures</a><a href="#a2">A.2 / Homographies</a><a href="#a3">A.3 / Warping</a><a href="#a4">A.4 / Mosaics</a>
+<a href="#b1">B.1 / Corners</a><a href="#b2">B.2 / Descriptors</a><a href="#b3">B.3 / Matching</a><a href="#b4">B.4 / RANSAC</a>
 <button class="print-button" type="button">Print report ↗</button>
 </div></nav>
 <main id="main" class="wrap">
@@ -177,7 +178,119 @@ combined = a*weight[:,:,None] + b*(1-weight[:,:,None])</code></pre></details>
 <div class="grid"><figure class=""><a class="image-link" href="images/living_room/hard_seam.png" aria-label="Enlarge: Living room · reference overwrites source"><img src="images/living_room/hard_seam.png" alt="Living room · reference overwrites source" width="4079" height="2633"></a><figcaption>Living room · reference overwrites source</figcaption></figure><figure class=""><a class="image-link" href="images/living_room/mosaic.png" aria-label="Enlarge: Living room · normalized feather blending"><img src="images/living_room/mosaic.png" alt="Living room · normalized feather blending" width="4079" height="2633"></a><figcaption>Living room · normalized feather blending</figcaption></figure></div>
 </article>
 </section>
+<section id="b1"><div class="section-heading"><span class="part-number">B.1</span><h2>Harris corners and ANMS</h2></div>
+
+<p class="params">Part B · automatic feature matching · 1600-pixel maximum input side · single scale · c = 0.9 · 1,000 selected corners per image</p>
+<div class="report-text" id="write-b1-corners">
+<p>The first step in order to create a homography between the two images automatically is to find matching points between the images. Earlier, this was done manually, but now, this will be done algorithmically. I first convert each image to grayscale and use the provided Harris corner detector. Corners in general are useful because moving a small window in any direction will cause a significant shift in pixel values, so their positions can be identified in both directions. However, a flat background doesn&#x27;t change much in either direction. The Harris detector gives a response at each pixel and the provided code selects local maxima while discarding points near the image boundary so there is enough room to extract a patch.</p>
+<p>Now that we got candidate points and their magnitudes, simply just keeping the points with the largest Harris responses could just bunch up a lot of points in the same detailed part of the image, which isn&#x27;t ideal since we are just going to be placing a lot of weight in very close points in the image that determines the entire homography. Thus, I want some sort of heuristic that balances taking points far from each other, so I used ANMS (adaptive non-maximal suppression) to achieve this effect of a more spread-out set of corners. This is done by calculating the distance to the closest corner whose response is sufficiently stronger, and then keeping 1000 corners with the largest distances. This way, a corner is more likely to be kept if there is no significantly stronger corner nearby.</p>
+</div>
+<h3>Trees</h3>
+<p class="params">Image 1 · 51,430 Harris candidates → 1,000 ANMS corners</p><div class="grid">
+<figure class=""><a class="image-link" href="images/part_b/trees/harris_1.jpg" aria-label="Enlarge: Trees · image 1 · Harris candidates"><img src="images/part_b/trees/harris_1.jpg" alt="Trees · image 1 · Harris candidates" width="1385" height="1076" loading="lazy"></a><figcaption>Trees · image 1 · Harris candidates</figcaption></figure>
+<figure class=""><a class="image-link" href="images/part_b/trees/anms_1.jpg" aria-label="Enlarge: Trees · image 1 · after ANMS"><img src="images/part_b/trees/anms_1.jpg" alt="Trees · image 1 · after ANMS" width="1385" height="1076" loading="lazy"></a><figcaption>Trees · image 1 · after ANMS</figcaption></figure>
+</div>
+<p class="params">Image 2 · 50,191 Harris candidates → 1,000 ANMS corners</p><div class="grid">
+<figure class=""><a class="image-link" href="images/part_b/trees/harris_2.jpg" aria-label="Enlarge: Trees · image 2 · Harris candidates"><img src="images/part_b/trees/harris_2.jpg" alt="Trees · image 2 · Harris candidates" width="1385" height="1076" loading="lazy"></a><figcaption>Trees · image 2 · Harris candidates</figcaption></figure>
+<figure class=""><a class="image-link" href="images/part_b/trees/anms_2.jpg" aria-label="Enlarge: Trees · image 2 · after ANMS"><img src="images/part_b/trees/anms_2.jpg" alt="Trees · image 2 · after ANMS" width="1385" height="1076" loading="lazy"></a><figcaption>Trees · image 2 · after ANMS</figcaption></figure>
+</div>
+<h3>Kitchen</h3>
+<p class="params">Image 1 · 56,142 Harris candidates → 1,000 ANMS corners</p><div class="grid">
+<figure class=""><a class="image-link" href="images/part_b/kitchen/harris_1.jpg" aria-label="Enlarge: Kitchen · image 1 · Harris candidates"><img src="images/part_b/kitchen/harris_1.jpg" alt="Kitchen · image 1 · Harris candidates" width="813" height="1104" loading="lazy"></a><figcaption>Kitchen · image 1 · Harris candidates</figcaption></figure>
+<figure class=""><a class="image-link" href="images/part_b/kitchen/anms_1.jpg" aria-label="Enlarge: Kitchen · image 1 · after ANMS"><img src="images/part_b/kitchen/anms_1.jpg" alt="Kitchen · image 1 · after ANMS" width="813" height="1104" loading="lazy"></a><figcaption>Kitchen · image 1 · after ANMS</figcaption></figure>
+</div>
+<p class="params">Image 2 · 55,212 Harris candidates → 1,000 ANMS corners</p><div class="grid">
+<figure class=""><a class="image-link" href="images/part_b/kitchen/harris_2.jpg" aria-label="Enlarge: Kitchen · image 2 · Harris candidates"><img src="images/part_b/kitchen/harris_2.jpg" alt="Kitchen · image 2 · Harris candidates" width="813" height="1104" loading="lazy"></a><figcaption>Kitchen · image 2 · Harris candidates</figcaption></figure>
+<figure class=""><a class="image-link" href="images/part_b/kitchen/anms_2.jpg" aria-label="Enlarge: Kitchen · image 2 · after ANMS"><img src="images/part_b/kitchen/anms_2.jpg" alt="Kitchen · image 2 · after ANMS" width="813" height="1104" loading="lazy"></a><figcaption>Kitchen · image 2 · after ANMS</figcaption></figure>
+</div>
+<h3>Living room</h3>
+<p class="params">Image 1 · 56,308 Harris candidates → 1,000 ANMS corners</p><div class="grid">
+<figure class=""><a class="image-link" href="images/part_b/living_room/harris_1.jpg" aria-label="Enlarge: Living room · image 1 · Harris candidates"><img src="images/part_b/living_room/harris_1.jpg" alt="Living room · image 1 · Harris candidates" width="1385" height="1076" loading="lazy"></a><figcaption>Living room · image 1 · Harris candidates</figcaption></figure>
+<figure class=""><a class="image-link" href="images/part_b/living_room/anms_1.jpg" aria-label="Enlarge: Living room · image 1 · after ANMS"><img src="images/part_b/living_room/anms_1.jpg" alt="Living room · image 1 · after ANMS" width="1385" height="1076" loading="lazy"></a><figcaption>Living room · image 1 · after ANMS</figcaption></figure>
+</div>
+<p class="params">Image 2 · 55,451 Harris candidates → 1,000 ANMS corners</p><div class="grid">
+<figure class=""><a class="image-link" href="images/part_b/living_room/harris_2.jpg" aria-label="Enlarge: Living room · image 2 · Harris candidates"><img src="images/part_b/living_room/harris_2.jpg" alt="Living room · image 2 · Harris candidates" width="1385" height="1076" loading="lazy"></a><figcaption>Living room · image 2 · Harris candidates</figcaption></figure>
+<figure class=""><a class="image-link" href="images/part_b/living_room/anms_2.jpg" aria-label="Enlarge: Living room · image 2 · after ANMS"><img src="images/part_b/living_room/anms_2.jpg" alt="Living room · image 2 · after ANMS" width="1385" height="1076" loading="lazy"></a><figcaption>Living room · image 2 · after ANMS</figcaption></figure>
+</div>
+</section>
+<section id="b2"><div class="section-heading"><span class="part-number">B.2</span><h2>Feature descriptors</h2></div>
+
+<p class="params">40 × 40 axis-aligned window · Gaussian σ = 2 px · 5 × 5 block averages → 8 × 8 descriptor · mean 0 / standard deviation 1</p>
+<div class="report-text" id="write-b2-descriptors">
+<p>Now that the corners are found, I need to implement some sort of algorithm so we can find these same corners in an image from a different view. In order to do this, I calculate descriptors of each corner. For each selected point, I use a 40x40 grayscale window from a blurred version of an image with a sigma of 2 pixels, and then average each 5x5 block to create an 8x8 patch. This is flattened to give a 64-value feature descriptor vector, which can be used to check similarity with other feature descriptors through methods such as SSD or cosine similarity.</p>
+<p>Before comparing two descriptors, I demean the vector and standardize it to unit stddev. This is to reduce the effect of one photo being uniformly brighter or having a different positive contrast scaling than the other photo. Patches that are nearly constant (defined as having a stddev below 1e-6) are discarded because normalizing that to stddev of 1 would lead to numerical instability. These patches are all taken at the same scale and aligned with the image axes, so this method doesn&#x27;t account for general rotation or scale changes between the photos.</p>
+</div>
+<h3>Trees</h3>
+<figure class="wide"><a class="image-link" href="images/part_b/trees/descriptors_1.png" aria-label="Enlarge: Trees · image 1 · source patches above, normalized descriptors below · display clipped to ±2"><img src="images/part_b/trees/descriptors_1.png" alt="Trees · image 1 · source patches above, normalized descriptors below · display clipped to ±2" width="2085" height="586" loading="lazy"></a><figcaption>Trees · image 1 · source patches above, normalized descriptors below · display clipped to ±2</figcaption></figure>
+<figure class="wide"><a class="image-link" href="images/part_b/trees/descriptors_2.png" aria-label="Enlarge: Trees · image 2 · source patches above, normalized descriptors below · display clipped to ±2"><img src="images/part_b/trees/descriptors_2.png" alt="Trees · image 2 · source patches above, normalized descriptors below · display clipped to ±2" width="2085" height="586" loading="lazy"></a><figcaption>Trees · image 2 · source patches above, normalized descriptors below · display clipped to ±2</figcaption></figure>
+<h3>Kitchen</h3>
+<figure class="wide"><a class="image-link" href="images/part_b/kitchen/descriptors_1.png" aria-label="Enlarge: Kitchen · image 1 · source patches above, normalized descriptors below · display clipped to ±2"><img src="images/part_b/kitchen/descriptors_1.png" alt="Kitchen · image 1 · source patches above, normalized descriptors below · display clipped to ±2" width="2085" height="586" loading="lazy"></a><figcaption>Kitchen · image 1 · source patches above, normalized descriptors below · display clipped to ±2</figcaption></figure>
+<figure class="wide"><a class="image-link" href="images/part_b/kitchen/descriptors_2.png" aria-label="Enlarge: Kitchen · image 2 · source patches above, normalized descriptors below · display clipped to ±2"><img src="images/part_b/kitchen/descriptors_2.png" alt="Kitchen · image 2 · source patches above, normalized descriptors below · display clipped to ±2" width="2085" height="586" loading="lazy"></a><figcaption>Kitchen · image 2 · source patches above, normalized descriptors below · display clipped to ±2</figcaption></figure>
+<h3>Living room</h3>
+<figure class="wide"><a class="image-link" href="images/part_b/living_room/descriptors_1.png" aria-label="Enlarge: Living room · image 1 · source patches above, normalized descriptors below · display clipped to ±2"><img src="images/part_b/living_room/descriptors_1.png" alt="Living room · image 1 · source patches above, normalized descriptors below · display clipped to ±2" width="2085" height="586" loading="lazy"></a><figcaption>Living room · image 1 · source patches above, normalized descriptors below · display clipped to ±2</figcaption></figure>
+<figure class="wide"><a class="image-link" href="images/part_b/living_room/descriptors_2.png" aria-label="Enlarge: Living room · image 2 · source patches above, normalized descriptors below · display clipped to ±2"><img src="images/part_b/living_room/descriptors_2.png" alt="Living room · image 2 · source patches above, normalized descriptors below · display clipped to ±2" width="2085" height="586" loading="lazy"></a><figcaption>Living room · image 2 · source patches above, normalized descriptors below · display clipped to ±2</figcaption></figure>
+</section>
+<section id="b3"><div class="section-heading"><span class="part-number">B.3</span><h2>Feature matching</h2></div>
+
+<p class="params">Best / second-best squared descriptor distance &lt; 0.6 · one source match per reference feature</p>
+<div class="report-text" id="write-b3-matching">
+<p>Now, we have all relevant descriptors for matching. I just have to choose my distance metric and the threshold for accepting a match. For the algorithm, I used SSD or sum of squared differences, which adds up the elementwise squared differences between corresponding values in the two descriptors. However, just choosing the smallest SSD doesn&#x27;t necessarily mean that the match is actually correct, since several parts of the image could look almost the same, especially with repeating patterns in an image. Thus, I find both the closest and second-closest descriptors, and keep the best match only if its SSD divided by the second-best SSD is below 0.6. If the two matches are almost equally good, this ratio would be closer to 1 and thus the match should be rejected since the solution is ambiguous.</p>
+<p>If multiple source points from the first image choose the same reference point in the second image, I keep the match with the smallest ratio so that the reference point is only used once. After running this entire process, I had 280, 126, and 68 candidate matches for the trees, kitchen, and living room pairs, respectively. The lines in the figures connect the points chosen as matches between the two images. Some can still be incorrect because similar-looking patches don&#x27;t necessarily correspond to the same point in the scene and can get past the threshold especially if there are slight scene geometric changes between the photos.</p>
+</div>
+<h3>Trees</h3><p class="params">280 candidate matches after ratio threshold and duplicate-target removal</p>
+<figure class="wide"><a class="image-link" href="images/part_b/trees/matches.jpg" aria-label="Enlarge: Trees · candidate descriptor matches before RANSAC"><img src="images/part_b/trees/matches.jpg" alt="Trees · candidate descriptor matches before RANSAC" width="2385" height="944" loading="lazy"></a><figcaption>Trees · candidate descriptor matches before RANSAC</figcaption></figure>
+<h3>Kitchen</h3><p class="params">126 candidate matches after ratio threshold and duplicate-target removal</p>
+<figure class="wide"><a class="image-link" href="images/part_b/kitchen/matches.jpg" aria-label="Enlarge: Kitchen · candidate descriptor matches before RANSAC"><img src="images/part_b/kitchen/matches.jpg" alt="Kitchen · candidate descriptor matches before RANSAC" width="1712" height="1182" loading="lazy"></a><figcaption>Kitchen · candidate descriptor matches before RANSAC</figcaption></figure>
+<h3>Living room</h3><p class="params">68 candidate matches after ratio threshold and duplicate-target removal</p>
+<figure class="wide"><a class="image-link" href="images/part_b/living_room/matches.jpg" aria-label="Enlarge: Living room · candidate descriptor matches before RANSAC"><img src="images/part_b/living_room/matches.jpg" alt="Living room · candidate descriptor matches before RANSAC" width="2385" height="944" loading="lazy"></a><figcaption>Living room · candidate descriptor matches before RANSAC</figcaption></figure>
+</section>
+<section id="b4"><div class="section-heading"><span class="part-number">B.4</span><h2>RANSAC and automatic mosaics</h2></div>
+
+<p class="params">Four pairs per trial · forward reprojection threshold 3 px · 200–5,000 trials · confidence target 0.999 · seed 180 · consensus refit</p>
+<div class="report-text" id="write-b4-ransac">
+<p>In order to reconcile how there are still errors, I utilize the RANSAC algorithm to check whether the matches agree with one homography by selecting a large set of geometrically consistent matches. In order to do this, I randomly select four matching point pairs and estimate a homography from them, rejecting samples with degenerate geometry (such as samples where three points are nearly collinear). I also normalize the coordinates before solving the least squares system and then transform H back to the original image coords. For each estimated H, I project all of the source points into the reference image and measure their distance from the matched reference points. If it&#x27;s below 3 pixels, the pair is counted as an inlier, and I keep the H with the most inliers, using the median inlier error to break ties. Then, I refit H using the inlier pairs and refine the set while it improves. This implementation uses a fixed random seed of 180, 200–5,000 trials, and an adaptive stopping target of 0.999 confidence based on the estimated inlier fraction.</p>
+</div>
+<div class="table-wrap"><table><caption>Automatic homography fits · errors measured on the selected fitting inliers</caption><thead><tr><th>Scene</th><th>Matches</th><th>Inliers</th><th>Inlier RMSE</th><th>Trials</th></tr></thead><tbody>
+<tr><td>Trees</td><td>280</td><td>260</td><td>1.294 px</td><td>200</td></tr>
+<tr><td>Kitchen</td><td>126</td><td>92</td><td>1.312 px</td><td>200</td></tr>
+<tr><td>Living room</td><td>68</td><td>23</td><td>1.865 px</td><td>756</td></tr>
+</tbody></table></div>
+<h3>Trees · RANSAC consensus</h3>
+<figure class="wide"><a class="image-link" href="images/part_b/trees/ransac.jpg" aria-label="Enlarge: Trees · 260/280 inliers · green: inliers / red: outliers"><img src="images/part_b/trees/ransac.jpg" alt="Trees · 260/280 inliers · green: inliers / red: outliers" width="2385" height="944" loading="lazy"></a><figcaption>Trees · 260/280 inliers · green: inliers / red: outliers</figcaption></figure>
+<details><summary>Automatic homography · Trees</summary><div class="formula"><pre>H =
+0.65614382  0.047163306  392.56027
+-0.18122762  0.85603683  111.84628
+-0.00021399636  -5.368586e-06  1</pre><span class="sub">First source → second reference at working resolution, before canvas translation.</span></div></details>
+<h3>Kitchen · RANSAC consensus</h3>
+<figure class="wide"><a class="image-link" href="images/part_b/kitchen/ransac.jpg" aria-label="Enlarge: Kitchen · 92/126 inliers · green: inliers / red: outliers"><img src="images/part_b/kitchen/ransac.jpg" alt="Kitchen · 92/126 inliers · green: inliers / red: outliers" width="1712" height="1182" loading="lazy"></a><figcaption>Kitchen · 92/126 inliers · green: inliers / red: outliers</figcaption></figure>
+<details><summary>Automatic homography · Kitchen</summary><div class="formula"><pre>H =
+0.55838519  0.009630042  655.07616
+-0.30805357  0.91212241  60.672515
+-0.00038211245  6.9384681e-06  1</pre><span class="sub">First source → second reference at working resolution, before canvas translation.</span></div></details>
+<h3>Living room · RANSAC consensus</h3>
+<figure class="wide"><a class="image-link" href="images/part_b/living_room/ransac.jpg" aria-label="Enlarge: Living room · 23/68 inliers · green: inliers / red: outliers"><img src="images/part_b/living_room/ransac.jpg" alt="Living room · 23/68 inliers · green: inliers / red: outliers" width="2385" height="944" loading="lazy"></a><figcaption>Living room · 23/68 inliers · green: inliers / red: outliers</figcaption></figure>
+<details><summary>Automatic homography · Living room</summary><div class="formula"><pre>H =
+0.3490943  -0.032350555  876.1035
+-0.17880438  0.85437761  43.870976
+-0.00041347453  2.6860961e-05  1</pre><span class="sub">First source → second reference at working resolution, before canvas translation.</span></div></details>
+<h3>Manual and automatic stitching</h3>
+<div class="report-text" id="write-b4-mosaics">
+<p>For all three mosaics, I use the automatically recovered homography to warp the first source photo into the second reference photo&#x27;s projection, using the same inverse mapping and bilinear interpolation from part A. The main difference from part A is that the matching points are now automatically found through the algorithms above instead of manually picked. The automatic method produced a mosaic for all three pairs, but the living room pair had the smallest fraction of matches remaining after RANSAC, with only 23 of 68 matches agreeing with the final homography. Some alignment errors remain: there is some duplicating/blurring on the left couch edge in the manually picked mosaic, and while it is sharp in the automatically picked homography, we can see some blurring on the Amazon logo and box edge. The kitchen mosaic looks largely the same as the mosaic using manually picked points, with the perspective stretching on the fridge as the homography doesn&#x27;t fix that. However, we see an improvement in the trees picture as there is significantly less overlap/blurring in the leaves where the two images meet in the mosaic with the automatically found points. This suggests that some of the error in the trees mosaic in part A could potentially be attributed to human error in picking the matching points since the automatic algorithm produces a sharper result here by decreasing those visual artifacts.</p>
+</div>
+<article class="other-example"><h3>Trees</h3><p class="params"><a href="#inputs-trees">Source photos in A.1 ↗</a> · same inputs, bilinear sampling and feather blending · automatic canvas 2302 × 1575</p><div class="grid">
+<figure class=""><a class="image-link" href="images/trees/mosaic.png" aria-label="Enlarge: Trees · manual correspondences / Part A"><img src="images/trees/mosaic.png" alt="Trees · manual correspondences / Part A" width="2279" height="1569" loading="lazy"></a><figcaption>Trees · manual correspondences / Part A</figcaption></figure>
+<figure class=""><a class="image-link" href="images/part_b/trees/mosaic.png" aria-label="Enlarge: Trees · automatic correspondences / Part B"><img src="images/part_b/trees/mosaic.png" alt="Trees · automatic correspondences / Part B" width="2302" height="1575" loading="lazy"></a><figcaption>Trees · automatic correspondences / Part B</figcaption></figure>
+</div></article>
+<article class="other-example"><h3>Kitchen</h3><p class="params"><a href="#inputs-kitchen">Source photos in A.1 ↗</a> · same inputs, bilinear sampling and feather blending · automatic canvas 2446 × 2651</p><div class="grid">
+<figure class=""><a class="image-link" href="images/kitchen/mosaic.png" aria-label="Enlarge: Kitchen · manual correspondences / Part A"><img src="images/kitchen/mosaic.png" alt="Kitchen · manual correspondences / Part A" width="2464" height="2661" loading="lazy"></a><figcaption>Kitchen · manual correspondences / Part A</figcaption></figure>
+<figure class=""><a class="image-link" href="images/part_b/kitchen/mosaic.png" aria-label="Enlarge: Kitchen · automatic correspondences / Part B"><img src="images/part_b/kitchen/mosaic.png" alt="Kitchen · automatic correspondences / Part B" width="2446" height="2651" loading="lazy"></a><figcaption>Kitchen · automatic correspondences / Part B</figcaption></figure>
+</div></article>
+<article class="other-example"><h3>Living room</h3><p class="params"><a href="#inputs-living_room">Source photos in A.1 ↗</a> · same inputs, bilinear sampling and feather blending · automatic canvas 4234 × 2825</p><div class="grid">
+<figure class=""><a class="image-link" href="images/living_room/mosaic.png" aria-label="Enlarge: Living room · manual correspondences / Part A"><img src="images/living_room/mosaic.png" alt="Living room · manual correspondences / Part A" width="4079" height="2633" loading="lazy"></a><figcaption>Living room · manual correspondences / Part A</figcaption></figure>
+<figure class=""><a class="image-link" href="images/part_b/living_room/mosaic.png" aria-label="Enlarge: Living room · automatic correspondences / Part B"><img src="images/part_b/living_room/mosaic.png" alt="Living room · automatic correspondences / Part B" width="4234" height="2825" loading="lazy"></a><figcaption>Living room · automatic correspondences / Part B</figcaption></figure>
+</div></article>
+</section>
 </main>
-<footer class="wrap"><span>John Joseph · CS180 · Project 4A</span><a href="https://cal-cs180.github.io/fa26/hw/proj3/partA.html">Assignment ↗</a></footer>
+<footer class="wrap"><span>John Joseph · CS180 · Project 4</span><a href="https://cal-cs180.github.io/fa26/hw/proj3/partA.html">Part A assignment ↗</a><a href="https://cal-cs180.github.io/fa26/hw/proj3/partB.html">Part B assignment ↗</a></footer>
 <dialog aria-label="Enlarged figure"><button type="button">Close / Esc</button><img alt=""><p></p></dialog>
 </body></html>
