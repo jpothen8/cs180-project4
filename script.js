@@ -39,6 +39,9 @@ window.addEventListener('afterprint', () => {
   closedDetails.forEach(details => { details.open = false; });
 });
 document.querySelector('.print-button').addEventListener('click', async () => {
-  await Promise.all([...document.querySelectorAll('main img, .hero img')].map(img => img.decode()));
+  await Promise.all([...document.querySelectorAll('main img, .hero img')].map(img => {
+    img.loading = 'eager';
+    return img.decode();
+  }));
   window.print();
 });
